@@ -11,7 +11,7 @@ import { ActionButtons } from '@/components/game/ActionButtons';
 import { GameOver } from '@/components/ui/GameOver';
 
 export default function Home() {
-  const { isPlaying, isCovering, coverProgress, startGame, resetGame } = useGameStore();
+  const { isPlaying, isCovering, isUncovering, coverProgress, startGame, resetGame } = useGameStore();
 
   useGameLoop();
 
@@ -19,6 +19,8 @@ export default function Home() {
     resetGame();
     startGame();
   };
+
+  const showProgressBar = isCovering || isUncovering;
 
   return (
     <div className="min-h-screen flex flex-col bg-amber-50">
@@ -30,7 +32,7 @@ export default function Home() {
             </h1>
             <p className="text-xl text-amber-800 mb-8 leading-relaxed">
               Make hay while the sun shines! Cover your hay before bad weather destroys it.
-              You have 60 seconds to maximise your score.
+              You have 2 minutes to maximise your score.
             </p>
             <div className="bg-amber-100 border-4 border-amber-800 rounded-lg p-6 mb-8 text-left">
               <h2 className="font-bold text-lg mb-3 text-amber-900">How to Play:</h2>
@@ -40,7 +42,8 @@ export default function Home() {
                 <li>💨 <strong>Windy:</strong> Lose 0.5 hay/sec</li>
                 <li>🌧️ <strong>Rainy:</strong> Lose 1 hay/sec</li>
                 <li>❄️ <strong>Snowing:</strong> Lose 2 hay/sec</li>
-                <li>🛡️ <strong>Cover hay</strong> to protect it and score points!</li>
+                <li>🛡️ <strong>Cover/Uncover:</strong> Toggle to protect or access hay</li>
+                <li>⚠️ <strong>Note:</strong> Cannot make hay whilst covered!</li>
               </ul>
             </div>
             <button
@@ -57,7 +60,7 @@ export default function Home() {
           <Header />
           <StatsDisplay />
           <GameCanvas />
-          <ProgressBar progress={coverProgress} visible={isCovering} />
+          <ProgressBar progress={coverProgress} visible={showProgressBar} />
           <ActionButtons />
           <GameOver onPlayAgain={handlePlayAgain} />
         </>

@@ -29,6 +29,7 @@ export interface GameState {
 
   // Covering action
   isCovering: boolean;
+  isUncovering: boolean;
   coverProgress: number;
   coverStartTime: number | null;
   coverDuration: number;
@@ -62,42 +63,42 @@ export const WEATHER_CONFIGS: Record<WeatherType, WeatherConfig> = {
   [WeatherType.SUNNY]: {
     canMakeHay: true,
     hayLossRate: 0,
-    minDuration: 8,
-    maxDuration: 15,
+    minDuration: 5,
+    maxDuration: 10,
     possibleTransitions: [WeatherType.CLOUDY, WeatherType.WINDY, WeatherType.RAINY],
   },
   [WeatherType.CLOUDY]: {
     canMakeHay: false,
     hayLossRate: 0,
-    minDuration: 5,
-    maxDuration: 10,
+    minDuration: 3,
+    maxDuration: 7,
     possibleTransitions: [WeatherType.SUNNY, WeatherType.WINDY, WeatherType.RAINY, WeatherType.SNOWING],
   },
   [WeatherType.WINDY]: {
     canMakeHay: false,
     hayLossRate: 0.5,
-    minDuration: 5,
-    maxDuration: 8,
+    minDuration: 3,
+    maxDuration: 6,
     possibleTransitions: [WeatherType.CLOUDY, WeatherType.RAINY, WeatherType.SNOWING],
   },
   [WeatherType.RAINY]: {
     canMakeHay: false,
     hayLossRate: 1,
-    minDuration: 4,
-    maxDuration: 7,
+    minDuration: 3,
+    maxDuration: 5,
     possibleTransitions: [WeatherType.CLOUDY, WeatherType.WINDY, WeatherType.SNOWING],
   },
   [WeatherType.SNOWING]: {
     canMakeHay: false,
     hayLossRate: 2,
-    minDuration: 3,
-    maxDuration: 6,
+    minDuration: 2,
+    maxDuration: 4,
     possibleTransitions: [WeatherType.CLOUDY, WeatherType.WINDY],
   },
 };
 
 export const GAME_CONSTANTS = {
-  GAME_DURATION: 60, // seconds
+  GAME_DURATION: 120, // seconds (2 minutes)
   BASE_COVER_TIME: 2, // seconds
   COVER_SCALING_FACTOR: 0.1, // seconds per hay
   TICK_RATE: 100, // milliseconds

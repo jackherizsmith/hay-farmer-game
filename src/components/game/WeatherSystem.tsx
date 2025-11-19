@@ -10,26 +10,31 @@ interface WeatherSystemProps {
 function RainParticles() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 50 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-0.5 h-4 bg-blue-400 opacity-70"
-          initial={{
-            x: `${Math.random() * 100}%`,
-            y: -20,
-          }}
-          animate={{
-            y: '100vh',
-          }}
-          transition={{
-            duration: 1 + Math.random() * 0.5,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-            ease: 'linear',
-          }}
-          style={{ imageRendering: 'pixelated' }}
-        />
-      ))}
+      {Array.from({ length: 50 }).map((_, i) => {
+        const xPosition = Math.random() * 100;
+        return (
+          <motion.div
+            key={i}
+            className="absolute w-0.5 h-4 bg-blue-400 opacity-70"
+            style={{
+              left: `${xPosition}%`,
+              imageRendering: 'pixelated',
+            }}
+            initial={{
+              y: -20,
+            }}
+            animate={{
+              y: '100vh',
+            }}
+            transition={{
+              duration: 1 + Math.random() * 0.5,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+              ease: 'linear',
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -37,27 +42,33 @@ function RainParticles() {
 function SnowParticles() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 40 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-2 h-2 bg-white rounded-full opacity-80"
-          initial={{
-            x: `${Math.random() * 100}%`,
-            y: -20,
-          }}
-          animate={{
-            y: '100vh',
-            x: `${Math.random() * 100}%`,
-          }}
-          transition={{
-            duration: 3 + Math.random() * 2,
-            repeat: Infinity,
-            delay: Math.random() * 3,
-            ease: 'linear',
-          }}
-          style={{ imageRendering: 'pixelated' }}
-        />
-      ))}
+      {Array.from({ length: 40 }).map((_, i) => {
+        const xStart = Math.random() * 100;
+        const xEnd = Math.random() * 100;
+        return (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-white rounded-full opacity-80"
+            style={{
+              imageRendering: 'pixelated',
+            }}
+            initial={{
+              left: `${xStart}%`,
+              y: -20,
+            }}
+            animate={{
+              y: '100vh',
+              left: `${xEnd}%`,
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 3,
+              ease: 'linear',
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
