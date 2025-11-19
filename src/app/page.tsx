@@ -29,7 +29,7 @@ export default function Home() {
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-lg">
             <h1
-              className="text-6xl font-bold text-amber-900 mb-4 font-mono"
+              className="text-4xl font-bold text-amber-900 mb-4 font-mono"
               style={{ imageRendering: "pixelated" }}
             >
               🌾 Hay Girl 🌾
