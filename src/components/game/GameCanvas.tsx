@@ -41,7 +41,19 @@ export function GameCanvas() {
     }
   };
 
-  const totalHayBales = Math.floor(uncoveredHay) + coveredHay;
+  const fieldHayCount = Math.max(0, Math.floor(uncoveredHay));
+  const balesPerRow = 10;
+  const baleSize = 32; // w-8 h-8 = 32px
+
+  // Calculate grid layout (stacked from bottom up)
+  const rows: number[][] = [];
+  for (let i = 0; i < fieldHayCount; i++) {
+    const rowIndex = Math.floor(i / balesPerRow);
+    if (!rows[rowIndex]) {
+      rows[rowIndex] = [];
+    }
+    rows[rowIndex].push(i);
+  }
 
   return (
     <div className="relative w-full flex-1 overflow-hidden">
@@ -124,44 +136,32 @@ export function GameCanvas() {
         </div>
       </div>
 
-      {/* Hay bales */}
+      {/* Field Hay bales - stacked from bottom up */}
       <div className="absolute bottom-[33%] left-1/2 transform -translate-x-1/2 z-10">
-        <div className="flex flex-wrap justify-center gap-2 max-w-md">
-          {/* Covered hay (green/protected) */}
-          {Array.from({ length: Math.min(coveredHay, 30) }).map((_, i) => (
-            <motion.div
-              key={`covered-${i}`}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="w-8 h-8 bg-green-700 border-2 border-green-900 rounded relative"
-              style={{ imageRendering: 'pixelated' }}
+        <div className="relative" style={{ width: `${balesPerRow * baleSize}px` }}>
+          {rows.map((row, rowIndex) => (
+            <div
+              key={`row-${rowIndex}`}
+              className="absolute flex"
+              style={{
+                bottom: `${rowIndex * baleSize}px`,
+                left: 0,
+              }}
             >
-              <div className="absolute inset-1 border border-green-800" />
-              <div className="absolute inset-0 flex items-center justify-center text-xs">
-                ✓
-              </div>
-            </motion.div>
-          ))}
-
-          {/* Uncovered hay (yellow/vulnerable) */}
-          {Array.from({ length: Math.min(Math.floor(uncoveredHay), 30) }).map((_, i) => (
-            <motion.div
-              key={`uncovered-${i}`}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="w-8 h-8 bg-yellow-600 border-2 border-yellow-800 rounded relative"
-              style={{ imageRendering: 'pixelated' }}
-            >
-              <div className="absolute inset-1 border border-yellow-700" />
-              <div className="absolute top-0.5 left-0.5 w-1 h-1 bg-yellow-400" />
-            </motion.div>
-          ))}
-
-          {totalHayBales > 30 && (
-            <div className="w-full text-center text-amber-900 font-bold font-mono mt-2 bg-amber-100 rounded px-2 py-1 border-2 border-amber-900">
-              +{totalHayBales - 30} more
+              {row.map((baleId) => (
+                <motion.div
+                  key={`hay-${baleId}`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-8 h-8 bg-yellow-600 border-2 border-yellow-800 rounded relative"
+                  style={{ imageRendering: 'pixelated' }}
+                >
+                  <div className="absolute inset-1 border border-yellow-700" />
+                  <div className="absolute top-0.5 left-0.5 w-1 h-1 bg-yellow-400" />
+                </motion.div>
+              ))}
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>
