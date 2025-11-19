@@ -40,6 +40,7 @@ const initialState: GameState = {
   coverProgress: 0,
   coverStartTime: null,
   coverDuration: 0,
+  hayBeingTransferred: 0,
   weather: {
     current: WeatherType.SUNNY,
     nextChangeAt: initialWeatherDuration,
@@ -116,41 +117,60 @@ export const useGameStore = create<GameStore>((set, get) => ({
       elapsedTime: newElapsedTime,
     };
 
-    // Handle covering/uncovering progress
+    // Handle covering/uncovering progress with gradual transfer
     if ((state.isCovering || state.isUncovering) && state.coverStartTime !== null) {
       const coverElapsed = (now - state.coverStartTime) / 1000;
       const progress = clamp((coverElapsed / state.coverDuration) * 100, 0, 100);
 
-      if (progress >= 100) {
-        if (state.isCovering) {
+      // Calculate how much hay should be transferred at this progress point
+      const totalToTransfer = state.hayBeingTransferred;
+      const shouldBeTransferred = (progress / 100) * totalToTransfer;
+
+      if (state.isCovering) {
+        // Covering: move hay from uncovered to covered progressively
+        const currentlyCovered = state.coveredHay - (state.coveredHay - Math.floor(shouldBeTransferred));
+        const actualTransferred = Math.min(shouldBeTransferred, totalToTransfer);
+
+        updates.coveredHay = Math.floor((state.coveredHay - totalToTransfer) + actualTransferred);
+        updates.uncoveredHay = Math.max(0, (state.uncoveredHay + totalToTransfer) - actualTransferred);
+
+        if (progress >= 100) {
           // Covering complete
           updates.isCovering = false;
           updates.coverProgress = 0;
           updates.coverStartTime = null;
-          updates.coveredHay = state.coveredHay + state.uncoveredHay;
-          updates.uncoveredHay = 0;
+          updates.hayBeingTransferred = 0;
 
           get().addAction({
             type: 'complete_cover',
             timestamp: now,
-            data: { amount: state.uncoveredHay },
+            data: { amount: totalToTransfer },
           });
-        } else if (state.isUncovering) {
+        } else {
+          updates.coverProgress = progress;
+        }
+      } else if (state.isUncovering) {
+        // Uncovering: move hay from covered to uncovered progressively
+        const actualTransferred = Math.min(shouldBeTransferred, totalToTransfer);
+
+        updates.uncoveredHay = Math.floor((state.uncoveredHay - totalToTransfer) + actualTransferred);
+        updates.coveredHay = Math.max(0, (state.coveredHay + totalToTransfer) - actualTransferred);
+
+        if (progress >= 100) {
           // Uncovering complete
           updates.isUncovering = false;
           updates.coverProgress = 0;
           updates.coverStartTime = null;
-          updates.uncoveredHay = state.uncoveredHay + state.coveredHay;
-          updates.coveredHay = 0;
+          updates.hayBeingTransferred = 0;
 
           get().addAction({
             type: 'complete_cover',
             timestamp: now,
-            data: { amount: state.coveredHay },
+            data: { amount: totalToTransfer },
           });
+        } else {
+          updates.coverProgress = progress;
         }
-      } else {
-        updates.coverProgress = progress;
       }
     }
 
@@ -211,9 +231,52 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   toggleCover: () => {
     const state = get();
-    if (!get().canToggleCover()) return;
-
     const now = Date.now();
+
+    // If currently covering, switch to uncovering (if there's covered hay)
+    if (state.isCovering && state.coveredHay > 0) {
+      const duration = calculateCoverDuration(state.coveredHay);
+
+      set({
+        isCovering: false,
+        isUncovering: true,
+        coverProgress: 0,
+        coverStartTime: now,
+        coverDuration: duration,
+        hayBeingTransferred: state.coveredHay,
+      });
+
+      get().addAction({
+        type: 'start_cover',
+        timestamp: now,
+        data: { amount: state.coveredHay, duration, action: 'uncover' },
+      });
+      return;
+    }
+
+    // If currently uncovering, switch to covering (if there's uncovered hay)
+    if (state.isUncovering && state.uncoveredHay > 0) {
+      const duration = calculateCoverDuration(state.uncoveredHay);
+
+      set({
+        isCovering: true,
+        isUncovering: false,
+        coverProgress: 0,
+        coverStartTime: now,
+        coverDuration: duration,
+        hayBeingTransferred: state.uncoveredHay,
+      });
+
+      get().addAction({
+        type: 'start_cover',
+        timestamp: now,
+        data: { amount: state.uncoveredHay, duration, action: 'cover' },
+      });
+      return;
+    }
+
+    // Not currently doing anything - start new action
+    if (!get().canToggleCover()) return;
 
     // If we have uncovered hay, cover it
     if (state.uncoveredHay > 0) {
@@ -225,12 +288,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
         coverProgress: 0,
         coverStartTime: now,
         coverDuration: duration,
+        hayBeingTransferred: state.uncoveredHay,
       });
 
       get().addAction({
         type: 'start_cover',
         timestamp: now,
-        data: { amount: state.uncoveredHay, duration },
+        data: { amount: state.uncoveredHay, duration, action: 'cover' },
       });
     }
     // If we have covered hay, uncover it
@@ -243,12 +307,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
         coverProgress: 0,
         coverStartTime: now,
         coverDuration: duration,
+        hayBeingTransferred: state.coveredHay,
       });
 
       get().addAction({
         type: 'start_cover',
         timestamp: now,
-        data: { amount: state.coveredHay, duration },
+        data: { amount: state.coveredHay, duration, action: 'uncover' },
       });
     }
   },
@@ -283,12 +348,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   canToggleCover: () => {
     const state = get();
+    // Can always toggle if playing and there's hay in either state
+    // This allows interrupting cover/uncover actions
     return (
       state.isPlaying &&
       !state.isPaused &&
       !state.isGameOver &&
-      !state.isCovering &&
-      !state.isUncovering &&
       (state.uncoveredHay > 0 || state.coveredHay > 0)
     );
   },

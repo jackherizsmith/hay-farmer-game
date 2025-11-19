@@ -39,10 +39,10 @@ export default function Home() {
               <ul className="space-y-2 text-amber-900">
                 <li>☀️ <strong>Sunny:</strong> Make hay (+1 per click)</li>
                 <li>☁️ <strong>Cloudy:</strong> Cannot make hay, no loss</li>
-                <li>💨 <strong>Windy:</strong> Lose 0.5 hay/sec</li>
-                <li>🌧️ <strong>Rainy:</strong> Lose 1 hay/sec</li>
-                <li>❄️ <strong>Snowing:</strong> Lose 2 hay/sec</li>
-                <li>🛡️ <strong>Cover/Uncover:</strong> Toggle to protect or access hay</li>
+                <li>💨 <strong>Windy:</strong> Lose 1.5 hay/sec</li>
+                <li>🌧️ <strong>Rainy:</strong> Lose 3 hay/sec</li>
+                <li>❄️ <strong>Snowing:</strong> Lose 5 hay/sec (brutal!)</li>
+                <li>🛡️ <strong>Cover/Uncover:</strong> Toggle anytime - interrupts current action</li>
                 <li>⚠️ <strong>Note:</strong> Cannot make hay whilst covered!</li>
               </ul>
             </div>

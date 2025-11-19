@@ -33,6 +33,7 @@ export interface GameState {
   coverProgress: number;
   coverStartTime: number | null;
   coverDuration: number;
+  hayBeingTransferred: number; // Amount of hay being covered/uncovered
 
   // Weather
   weather: WeatherState;
@@ -63,37 +64,37 @@ export const WEATHER_CONFIGS: Record<WeatherType, WeatherConfig> = {
   [WeatherType.SUNNY]: {
     canMakeHay: true,
     hayLossRate: 0,
-    minDuration: 5,
-    maxDuration: 10,
-    possibleTransitions: [WeatherType.CLOUDY, WeatherType.WINDY, WeatherType.RAINY],
+    minDuration: 8,
+    maxDuration: 15,
+    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.CLOUDY, WeatherType.WINDY],
   },
   [WeatherType.CLOUDY]: {
     canMakeHay: false,
     hayLossRate: 0,
-    minDuration: 3,
-    maxDuration: 7,
-    possibleTransitions: [WeatherType.SUNNY, WeatherType.WINDY, WeatherType.RAINY, WeatherType.SNOWING],
+    minDuration: 2,
+    maxDuration: 4,
+    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.WINDY, WeatherType.RAINY],
   },
   [WeatherType.WINDY]: {
     canMakeHay: false,
-    hayLossRate: 0.5,
-    minDuration: 3,
-    maxDuration: 6,
-    possibleTransitions: [WeatherType.CLOUDY, WeatherType.RAINY, WeatherType.SNOWING],
+    hayLossRate: 1.5,
+    minDuration: 2,
+    maxDuration: 4,
+    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.CLOUDY, WeatherType.RAINY],
   },
   [WeatherType.RAINY]: {
     canMakeHay: false,
-    hayLossRate: 1,
-    minDuration: 3,
-    maxDuration: 5,
-    possibleTransitions: [WeatherType.CLOUDY, WeatherType.WINDY, WeatherType.SNOWING],
+    hayLossRate: 3,
+    minDuration: 2,
+    maxDuration: 4,
+    possibleTransitions: [WeatherType.SUNNY, WeatherType.CLOUDY, WeatherType.WINDY, WeatherType.SNOWING],
   },
   [WeatherType.SNOWING]: {
     canMakeHay: false,
-    hayLossRate: 2,
+    hayLossRate: 5,
     minDuration: 2,
-    maxDuration: 4,
-    possibleTransitions: [WeatherType.CLOUDY, WeatherType.WINDY],
+    maxDuration: 3,
+    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.CLOUDY],
   },
 };
 
