@@ -36,23 +36,27 @@ Make hay while the sun shines! You have 60 seconds (representing 18 hours from 5
 ### Local Development
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd hay-farmer-game
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env with your database credentials
    ```
 
 4. **Set up the database**
+
    ```bash
    # Start PostgreSQL (or use Docker Compose)
    docker-compose up -d postgres
@@ -65,6 +69,7 @@ Make hay while the sun shines! You have 60 seconds (representing 18 hours from 5
    ```
 
 5. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -87,6 +92,7 @@ docker-compose down
 ```
 
 This will start:
+
 - PostgreSQL on port 5432
 - Redis on port 6379
 - Next.js app on port 3000
@@ -141,7 +147,9 @@ Configurable via environment variables:
 ## API Routes
 
 ### POST /api/scores
+
 Submit a game score
+
 ```json
 {
   "playerName": "John",
@@ -155,18 +163,22 @@ Submit a game score
 ```
 
 ### GET /api/leaderboard
+
 Get top scores
 Query params:
+
 - `limit` - Number of scores to return (default: 10, max: 100)
 - `offset` - Pagination offset (default: 0)
 
 ## Database Schema
 
 ### GameScore
+
 - Stores individual game scores
 - Indexed by score (descending) and creation time
 
 ### GameSession
+
 - Stores detailed gameplay session data
 - Includes weather history and player actions
 - Useful for analytics and debugging
@@ -213,10 +225,12 @@ docker run -p 3000:3000 \
 ### Environment Variables for Production
 
 Required:
+
 - `DATABASE_URL` - PostgreSQL connection string
 - `NODE_ENV=production`
 
 Optional:
+
 - `REDIS_URL` - Redis connection string
 - `NEXT_PUBLIC_APP_URL` - Public app URL
 - `NEXT_PUBLIC_GA_TRACKING_ID` - Google Analytics ID
