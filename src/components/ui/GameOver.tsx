@@ -16,7 +16,6 @@ export function GameOver({ onPlayAgain }: GameOverProps) {
     let hayMade = 0;
     let hayLost = 0;
     let coverActions = 0;
-    let uncoverActions = 0;
     const weatherChanges: string[] = [];
 
     actionHistory.forEach((action) => {
@@ -30,8 +29,6 @@ export function GameOver({ onPlayAgain }: GameOverProps) {
         case 'start_cover':
           if (action.data?.action === 'cover') {
             coverActions++;
-          } else if (action.data?.action === 'uncover') {
-            uncoverActions++;
           }
           break;
         case 'weather_change':
@@ -46,7 +43,6 @@ export function GameOver({ onPlayAgain }: GameOverProps) {
       hayMade: Math.floor(hayMade),
       hayLost: Math.floor(hayLost),
       coverActions,
-      uncoverActions,
       weatherChanges: weatherChanges.length,
       totalHay: coveredHay + uncoveredHay,
     };
@@ -101,12 +97,7 @@ export function GameOver({ onPlayAgain }: GameOverProps) {
 
             <div className="bg-white border-2 border-amber-700 rounded p-3 text-center">
               <div className="text-2xl font-bold text-blue-600 font-mono">{stats.coverActions}</div>
-              <div className="text-xs text-amber-700 font-bold">Times Covered</div>
-            </div>
-
-            <div className="bg-white border-2 border-amber-700 rounded p-3 text-center">
-              <div className="text-2xl font-bold text-orange-600 font-mono">{stats.uncoverActions}</div>
-              <div className="text-xs text-amber-700 font-bold">Times Uncovered</div>
+              <div className="text-xs text-amber-700 font-bold">Times Moved to Barn</div>
             </div>
 
             <div className="bg-white border-2 border-amber-700 rounded p-3 text-center">
@@ -115,15 +106,20 @@ export function GameOver({ onPlayAgain }: GameOverProps) {
             </div>
 
             <div className="bg-white border-2 border-amber-700 rounded p-3 text-center">
-              <div className="text-2xl font-bold text-gray-600 font-mono">{uncoveredHay}</div>
-              <div className="text-xs text-amber-700 font-bold">Hay Left Uncovered</div>
+              <div className="text-2xl font-bold text-orange-600 font-mono">{Math.floor(uncoveredHay)}</div>
+              <div className="text-xs text-amber-700 font-bold">Hay Left in Field</div>
+            </div>
+
+            <div className="bg-white border-2 border-amber-700 rounded p-3 text-center">
+              <div className="text-2xl font-bold text-green-600 font-mono">{coveredHay}</div>
+              <div className="text-xs text-amber-700 font-bold">Hay in Barn</div>
             </div>
           </div>
 
           {uncoveredHay > 0 && (
             <div className="mt-4 p-3 bg-red-100 border-2 border-red-600 rounded text-center">
               <div className="text-sm text-red-800 font-bold">
-                ⚠️ You lost {uncoveredHay} hay bales by leaving them uncovered!
+                ⚠️ You lost {Math.floor(uncoveredHay)} hay bales by leaving them in the field!
               </div>
             </div>
           )}

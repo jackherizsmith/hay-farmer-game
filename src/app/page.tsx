@@ -11,7 +11,7 @@ import { ActionButtons } from '@/components/game/ActionButtons';
 import { GameOver } from '@/components/ui/GameOver';
 
 export default function Home() {
-  const { isPlaying, isCovering, isUncovering, coverProgress, startGame, resetGame } = useGameStore();
+  const { isPlaying, isCovering, coverProgress, startGame, resetGame } = useGameStore();
 
   useGameLoop();
 
@@ -20,7 +20,7 @@ export default function Home() {
     startGame();
   };
 
-  const showProgressBar = isCovering || isUncovering;
+  const showProgressBar = isCovering;
 
   return (
     <div className="min-h-screen flex flex-col bg-amber-50">
@@ -39,11 +39,12 @@ export default function Home() {
               <ul className="space-y-2 text-amber-900">
                 <li>☀️ <strong>Sunny:</strong> Make hay (+1 per click)</li>
                 <li>☁️ <strong>Cloudy:</strong> Cannot make hay, no loss</li>
-                <li>💨 <strong>Windy:</strong> Lose 1.5 hay/sec</li>
-                <li>🌧️ <strong>Rainy:</strong> Lose 3 hay/sec</li>
-                <li>❄️ <strong>Snowing:</strong> Lose 5 hay/sec (brutal!)</li>
-                <li>🛡️ <strong>Cover/Uncover:</strong> Toggle anytime - interrupts current action</li>
-                <li>⚠️ <strong>Note:</strong> Cannot make hay whilst covered!</li>
+                <li>💨 <strong>Windy:</strong> Lose 1.5 hay/sec from field</li>
+                <li>🌧️ <strong>Rainy:</strong> Lose 3 hay/sec from field</li>
+                <li>❄️ <strong>Snowing:</strong> Lose 5 hay/sec from field (brutal!)</li>
+                <li>🏚️ <strong>Cover Hay:</strong> Move field hay to barn (safe forever!)</li>
+                <li>⛔ <strong>Stop Covering:</strong> Cancel covering to make more hay</li>
+                <li>⚠️ <strong>Note:</strong> Cannot make hay whilst covering!</li>
               </ul>
             </div>
             <button

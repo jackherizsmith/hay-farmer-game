@@ -24,18 +24,16 @@ export interface GameState {
   gameTimeHour: number;
 
   // Hay tracking
-  uncoveredHay: number;
-  coveredHay: number;
+  uncoveredHay: number; // Hay in the field (vulnerable to weather)
+  coveredHay: number; // Hay safely stored in barn
 
   // Covering action
   isCovering: boolean;
-  isUncovering: boolean;
   coverProgress: number;
   coverStartTime: number | null;
   coverDuration: number;
-  hayBeingTransferred: number; // Amount of hay being covered/uncovered
-  startUncoveredHay: number; // Hay counts when action started
-  startCoveredHay: number;
+  hayBeingTransferred: number; // Amount of hay being moved to barn
+  startUncoveredHay: number; // Field hay when covering started
 
   // Weather
   weather: WeatherState;
