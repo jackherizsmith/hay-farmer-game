@@ -43,6 +43,7 @@ const initialState: GameState = {
   coverDuration: 0,
   hayBeingTransferred: 0,
   startUncoveredHay: 0,
+  startCoveredHay: 0,
   weather: {
     current: WeatherType.SUNNY,
     nextChangeAt: initialWeatherDuration,
@@ -127,8 +128,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       // Covering: gradually move hay from field to barn
       const transferred = Math.floor(state.hayBeingTransferred * progressRatio);
-      updates.coveredHay = (state.coveredHay - state.hayBeingTransferred) + transferred;
-      updates.uncoveredHay = state.startUncoveredHay - transferred;
+      updates.coveredHay = Math.max(0, state.startCoveredHay + transferred);
+      updates.uncoveredHay = Math.max(0, state.startUncoveredHay - transferred);
 
       if (progress >= 100) {
         // Covering complete - all hay now safely in barn
@@ -136,6 +137,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         updates.coverProgress = 0;
         updates.coverStartTime = null;
         updates.hayBeingTransferred = 0;
+        updates.coveredHay = Math.max(0, state.startCoveredHay + state.hayBeingTransferred);
         updates.uncoveredHay = Math.max(0, state.startUncoveredHay - state.hayBeingTransferred);
 
         get().addAction({
@@ -218,6 +220,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       coverDuration: duration,
       hayBeingTransferred: amountToCover,
       startUncoveredHay: state.uncoveredHay,
+      startCoveredHay: state.coveredHay,
     });
 
     get().addAction({

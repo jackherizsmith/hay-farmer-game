@@ -34,6 +34,7 @@ export interface GameState {
   coverDuration: number;
   hayBeingTransferred: number; // Amount of hay being moved to barn
   startUncoveredHay: number; // Field hay when covering started
+  startCoveredHay: number; // Barn hay when covering started
 
   // Weather
   weather: WeatherState;
