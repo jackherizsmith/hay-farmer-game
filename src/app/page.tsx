@@ -32,7 +32,7 @@ export default function Home() {
               className="text-6xl font-bold text-amber-900 mb-4 font-mono"
               style={{ imageRendering: "pixelated" }}
             >
-              🌾 Hay Farmer 🌾
+              🌾 Hay Girl 🌾
             </h1>
             <p className="text-xl text-amber-800 mb-8 leading-relaxed">
               Make hay while the sun shines! Cover your hay before bad weather
