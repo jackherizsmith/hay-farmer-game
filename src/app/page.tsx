@@ -56,7 +56,7 @@ export default function Home() {
                   🌧️ <strong>Rainy:</strong> Lose 3 hay/sec from field
                 </li>
                 <li>
-                  ❄️ <strong>Snowing:</strong> Lose 5 hay/sec from field
+                  ❄️ <strong>Snowing:</strong> Lose 50 hay/sec from field
                   (brutal!)
                 </li>
                 <li>
