@@ -124,7 +124,7 @@ export const WEATHER_CONFIGS: Record<WeatherType, WeatherConfig> = {
   },
   [WeatherType.SNOWING]: {
     canMakeHay: false,
-    hayLossRate: 5,
+    hayLossRate: 50,
     minDuration: 1,
     maxDuration: 2,
     possibleTransitions: [

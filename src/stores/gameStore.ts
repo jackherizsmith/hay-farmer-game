@@ -192,17 +192,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (weatherConfig.hayLossRate > 0) {
         const lossAmount = (weatherConfig.hayLossRate * GAME_CONSTANTS.TICK_RATE) / 1000;
         const newUncoveredHay = Math.floor(Math.max(0, state.uncoveredHay - lossAmount));
+        const currentUncoveredHay = Math.floor(state.uncoveredHay);
 
-        if (newUncoveredHay !== Math.floor(state.uncoveredHay)) {
+        // Only log when we actually lose a full hay bale (integer change)
+        if (newUncoveredHay !== currentUncoveredHay) {
+          const actualLoss = currentUncoveredHay - newUncoveredHay;
           updates.uncoveredHay = newUncoveredHay;
 
-          if (lossAmount >= 0.1) {
-            get().addAction({
-              type: 'hay_loss',
-              timestamp: now,
-              data: { amount: lossAmount, weather: state.weather.current },
-            });
-          }
+          get().addAction({
+            type: 'hay_loss',
+            timestamp: now,
+            data: { amount: actualLoss, weather: state.weather.current },
+          });
         }
       }
     }
