@@ -6,7 +6,7 @@ import { WeatherSystem } from './WeatherSystem';
 import { motion } from 'framer-motion';
 
 export function GameCanvas() {
-  const { weather, uncoveredHay, coveredHay } = useGameStore();
+  const { weather, uncoveredHay, isMakingHay, makeHayProgress } = useGameStore();
 
   const getSkyGradient = (weatherType: WeatherType) => {
     switch (weatherType) {
@@ -162,6 +162,33 @@ export function GameCanvas() {
               ))}
             </div>
           ))}
+
+          {/* Hay being made - show progress indicator */}
+          {isMakingHay && (
+            <div
+              className="absolute flex"
+              style={{
+                bottom: `${rows.length * baleSize}px`,
+                left: `${(fieldHayCount % balesPerRow) * baleSize}px`,
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-8 h-8 bg-yellow-400 border-2 border-yellow-600 rounded relative"
+                style={{ imageRendering: 'pixelated' }}
+              >
+                <div className="absolute inset-1 border border-yellow-500" />
+                {/* Progress bar */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-800 opacity-50">
+                  <div
+                    className="h-full bg-green-500 transition-all duration-100"
+                    style={{ width: `${makeHayProgress}%` }}
+                  />
+                </div>
+              </motion.div>
+            </div>
+          )}
         </div>
       </div>
     </div>

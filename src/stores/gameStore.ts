@@ -37,6 +37,9 @@ const initialState: GameState = {
   gameTimeHour: 5,
   uncoveredHay: 0,
   coveredHay: 0,
+  isMakingHay: false,
+  makeHayProgress: 0,
+  makeHayStartTime: null,
   isCovering: false,
   coverProgress: 0,
   coverStartTime: null,
@@ -87,6 +90,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isGameOver: true,
       finalScore: state.coveredHay,
     });
+
+    // Navigate to results page with game data
+    const params = new URLSearchParams({
+      score: state.coveredHay.toString(),
+      uncovered: state.uncoveredHay.toString(),
+      history: encodeURIComponent(JSON.stringify(state.actionHistory)),
+    });
+    window.location.href = `/results?${params.toString()}`;
   },
 
   resetGame: () => {
@@ -119,6 +130,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const updates: Partial<GameState> = {
       elapsedTime: newElapsedTime,
     };
+
+    // Handle hay-making progress
+    if (state.isMakingHay && state.makeHayStartTime !== null) {
+      const makeElapsed = (now - state.makeHayStartTime) / 1000;
+      const progress = clamp((makeElapsed / GAME_CONSTANTS.MAKE_HAY_DURATION) * 100, 0, 100);
+
+      if (progress >= 100) {
+        // Hay-making complete
+        updates.isMakingHay = false;
+        updates.makeHayProgress = 0;
+        updates.makeHayStartTime = null;
+        updates.uncoveredHay = Math.min(state.uncoveredHay + 1, GAME_CONSTANTS.MAX_FIELD_HAY);
+
+        get().addAction({
+          type: 'make_hay',
+          timestamp: now,
+          data: { amount: 1 },
+        });
+      } else {
+        updates.makeHayProgress = progress;
+      }
+    }
 
     // Handle covering progress with gradual transfer to barn
     if (state.isCovering && state.coverStartTime !== null) {
@@ -199,12 +232,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Don't exceed maximum field hay
     if (state.uncoveredHay >= GAME_CONSTANTS.MAX_FIELD_HAY) return;
 
-    set({ uncoveredHay: state.uncoveredHay + 1 });
-
-    get().addAction({
-      type: 'make_hay',
-      timestamp: Date.now(),
-      data: { amount: 1 },
+    // Start hay-making animation
+    const now = Date.now();
+    set({
+      isMakingHay: true,
+      makeHayProgress: 0,
+      makeHayStartTime: now,
     });
   },
 
@@ -274,8 +307,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   canMakeHay: () => {
     const state = get();
-    // Cannot make hay if currently covering or field is full
-    if (!state.isPlaying || state.isPaused || state.isGameOver || state.isCovering) {
+    // Cannot make hay if currently making hay, covering, or field is full
+    if (!state.isPlaying || state.isPaused || state.isGameOver || state.isCovering || state.isMakingHay) {
       return false;
     }
     if (state.uncoveredHay >= GAME_CONSTANTS.MAX_FIELD_HAY) {

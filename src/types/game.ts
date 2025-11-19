@@ -1,9 +1,9 @@
 export enum WeatherType {
-  SUNNY = 'sunny',
-  CLOUDY = 'cloudy',
-  WINDY = 'windy',
-  RAINY = 'rainy',
-  SNOWING = 'snowing',
+  SUNNY = "sunny",
+  CLOUDY = "cloudy",
+  WINDY = "windy",
+  RAINY = "rainy",
+  SNOWING = "snowing",
 }
 
 export interface WeatherState {
@@ -27,6 +27,11 @@ export interface GameState {
   uncoveredHay: number; // Hay in the field (vulnerable to weather)
   coveredHay: number; // Hay safely stored in barn
 
+  // Making hay action
+  isMakingHay: boolean;
+  makeHayProgress: number;
+  makeHayStartTime: number | null;
+
   // Covering action
   isCovering: boolean;
   coverProgress: number;
@@ -44,7 +49,12 @@ export interface GameState {
 }
 
 export interface GameAction {
-  type: 'make_hay' | 'start_cover' | 'complete_cover' | 'weather_change' | 'hay_loss';
+  type:
+    | "make_hay"
+    | "start_cover"
+    | "complete_cover"
+    | "weather_change"
+    | "hay_loss";
   timestamp: number;
   data?: {
     amount?: number;
@@ -65,44 +75,71 @@ export const WEATHER_CONFIGS: Record<WeatherType, WeatherConfig> = {
   [WeatherType.SUNNY]: {
     canMakeHay: true,
     hayLossRate: 0,
-    minDuration: 5,
-    maxDuration: 10,
-    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.CLOUDY, WeatherType.WINDY],
+    minDuration: 2,
+    maxDuration: 6,
+    possibleTransitions: [
+      WeatherType.SUNNY,
+      WeatherType.SUNNY,
+      WeatherType.SUNNY,
+      WeatherType.CLOUDY,
+      WeatherType.WINDY,
+    ],
   },
   [WeatherType.CLOUDY]: {
     canMakeHay: false,
     hayLossRate: 0,
     minDuration: 2,
     maxDuration: 3,
-    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.WINDY, WeatherType.RAINY],
+    possibleTransitions: [
+      WeatherType.SUNNY,
+      WeatherType.SUNNY,
+      WeatherType.SUNNY,
+      WeatherType.WINDY,
+      WeatherType.RAINY,
+    ],
   },
   [WeatherType.WINDY]: {
     canMakeHay: false,
     hayLossRate: 1.5,
     minDuration: 2,
     maxDuration: 3,
-    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.CLOUDY, WeatherType.RAINY],
+    possibleTransitions: [
+      WeatherType.SUNNY,
+      WeatherType.SUNNY,
+      WeatherType.CLOUDY,
+      WeatherType.RAINY,
+    ],
   },
   [WeatherType.RAINY]: {
     canMakeHay: false,
     hayLossRate: 3,
     minDuration: 2,
     maxDuration: 3,
-    possibleTransitions: [WeatherType.SUNNY, WeatherType.CLOUDY, WeatherType.WINDY, WeatherType.SNOWING],
+    possibleTransitions: [
+      WeatherType.SUNNY,
+      WeatherType.CLOUDY,
+      WeatherType.WINDY,
+      WeatherType.SNOWING,
+    ],
   },
   [WeatherType.SNOWING]: {
     canMakeHay: false,
     hayLossRate: 5,
     minDuration: 1,
     maxDuration: 2,
-    possibleTransitions: [WeatherType.SUNNY, WeatherType.SUNNY, WeatherType.CLOUDY],
+    possibleTransitions: [
+      WeatherType.SUNNY,
+      WeatherType.SUNNY,
+      WeatherType.CLOUDY,
+    ],
   },
 };
 
 export const GAME_CONSTANTS = {
-  GAME_DURATION: 120, // seconds (2 minutes)
+  GAME_DURATION: 90, // seconds (2 minutes)
   BASE_COVER_TIME: 2, // seconds
   COVER_SCALING_FACTOR: 0.1, // seconds per hay
+  MAKE_HAY_DURATION: 0.25, // seconds (250ms)
   TICK_RATE: 100, // milliseconds
   GAME_START_HOUR: 5, // 5am
   GAME_HOURS: 18, // 5am to 11pm
