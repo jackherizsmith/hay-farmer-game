@@ -88,13 +88,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       isPlaying: false,
       isGameOver: true,
-      finalScore: state.coveredHay,
+      finalScore: Math.floor(state.coveredHay),
     });
 
-    // Save game data to localStorage for results page
+    // Save game data to localStorage for results page (integers only)
     const gameResults = {
-      score: state.coveredHay,
-      uncovered: state.uncoveredHay,
+      score: Math.floor(state.coveredHay),
+      uncovered: Math.floor(state.uncoveredHay),
       history: state.actionHistory,
     };
     localStorage.setItem('gameResults', JSON.stringify(gameResults));
@@ -162,10 +162,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const progress = clamp((coverElapsed / state.coverDuration) * 100, 0, 100);
       const progressRatio = progress / 100;
 
-      // Covering: gradually move hay from field to barn
+      // Covering: gradually move hay from field to barn (always integers)
       const transferred = Math.floor(state.hayBeingTransferred * progressRatio);
-      updates.coveredHay = Math.max(0, state.startCoveredHay + transferred);
-      updates.uncoveredHay = Math.max(0, state.startUncoveredHay - transferred);
+      updates.coveredHay = Math.floor(Math.max(0, state.startCoveredHay + transferred));
+      updates.uncoveredHay = Math.floor(Math.max(0, state.startUncoveredHay - transferred));
 
       if (progress >= 100) {
         // Covering complete - all hay now safely in barn
@@ -173,8 +173,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         updates.coverProgress = 0;
         updates.coverStartTime = null;
         updates.hayBeingTransferred = 0;
-        updates.coveredHay = Math.max(0, state.startCoveredHay + state.hayBeingTransferred);
-        updates.uncoveredHay = Math.max(0, state.startUncoveredHay - state.hayBeingTransferred);
+        updates.coveredHay = Math.floor(Math.max(0, state.startCoveredHay + state.hayBeingTransferred));
+        updates.uncoveredHay = Math.floor(Math.max(0, state.startUncoveredHay - state.hayBeingTransferred));
 
         get().addAction({
           type: 'complete_cover',
@@ -186,14 +186,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
-    // Handle weather-based hay loss (only affects uncovered hay in field)
+    // Handle weather-based hay loss (only affects uncovered hay in field, store as integers)
     if (!state.isCovering && state.uncoveredHay > 0) {
       const weatherConfig = WEATHER_CONFIGS[state.weather.current];
       if (weatherConfig.hayLossRate > 0) {
         const lossAmount = (weatherConfig.hayLossRate * GAME_CONSTANTS.TICK_RATE) / 1000;
-        const newUncoveredHay = Math.max(0, state.uncoveredHay - lossAmount);
+        const newUncoveredHay = Math.floor(Math.max(0, state.uncoveredHay - lossAmount));
 
-        if (newUncoveredHay !== state.uncoveredHay) {
+        if (newUncoveredHay !== Math.floor(state.uncoveredHay)) {
           updates.uncoveredHay = newUncoveredHay;
 
           if (lossAmount >= 0.1) {
@@ -273,11 +273,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const state = get();
     if (!state.isCovering) return;
 
-    // Stop covering and return remaining hay to field
+    // Stop covering and return remaining hay to field (integers only)
     const now = Date.now();
     const progressRatio = state.coverProgress / 100;
     const alreadyTransferred = Math.floor(state.hayBeingTransferred * progressRatio);
-    const remainingInField = state.startUncoveredHay - alreadyTransferred;
+    const remainingInField = Math.floor(state.startUncoveredHay - alreadyTransferred);
 
     set({
       isCovering: false,
