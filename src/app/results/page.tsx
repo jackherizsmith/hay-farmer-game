@@ -1,27 +1,25 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 export default function ResultsPage() {
   const router = useRouter();
+  const [gameResults, setGameResults] = useState({ score: 0, uncovered: 0, history: [] });
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Get game data from localStorage (client-side only)
-  const gameResults = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return { score: 0, uncovered: 0, history: [] };
-    }
-
+  // Load game data from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
     try {
       const data = localStorage.getItem('gameResults');
       if (data) {
-        return JSON.parse(data);
+        setGameResults(JSON.parse(data));
       }
     } catch (e) {
       console.error('Failed to parse game results', e);
     }
-    return { score: 0, uncovered: 0, history: [] };
+    setIsLoaded(true);
   }, []);
 
   const finalScore = gameResults.score || 0;
