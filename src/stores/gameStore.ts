@@ -196,6 +196,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const state = get();
     if (!get().canMakeHay()) return;
 
+    // Don't exceed maximum field hay
+    if (state.uncoveredHay >= GAME_CONSTANTS.MAX_FIELD_HAY) return;
+
     set({ uncoveredHay: state.uncoveredHay + 1 });
 
     get().addAction({
@@ -271,8 +274,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   canMakeHay: () => {
     const state = get();
-    // Cannot make hay if currently covering
+    // Cannot make hay if currently covering or field is full
     if (!state.isPlaying || state.isPaused || state.isGameOver || state.isCovering) {
+      return false;
+    }
+    if (state.uncoveredHay >= GAME_CONSTANTS.MAX_FIELD_HAY) {
       return false;
     }
     const weatherConfig = WEATHER_CONFIGS[state.weather.current];

@@ -106,4 +106,5 @@ export const GAME_CONSTANTS = {
   TICK_RATE: 100, // milliseconds
   GAME_START_HOUR: 5, // 5am
   GAME_HOURS: 18, // 5am to 11pm
+  MAX_FIELD_HAY: 90, // maximum hay bales in field
 };
