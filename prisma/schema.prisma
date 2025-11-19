@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model GameScore {
+  id            String   @id @default(cuid())
+  playerName    String?
+  score         Int
+  coveredHay    Int
+  gameplayData  Json?
+  createdAt     DateTime @default(now())
+
+  @@index([score(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+model GameSession {
+  id              String   @id @default(cuid())
+  playerName      String?
+  finalScore      Int
+  coveredHay      Int
+  uncoveredHay    Int
+  weatherHistory  Json
+  actions         Json
+  duration        Int
+  completedAt     DateTime @default(now())
+
+  @@index([finalScore(sort: Desc)])
+}
