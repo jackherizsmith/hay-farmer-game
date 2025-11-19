@@ -80,7 +80,6 @@ export const WEATHER_CONFIGS: Record<WeatherType, WeatherConfig> = {
     possibleTransitions: [
       WeatherType.SUNNY,
       WeatherType.SUNNY,
-      WeatherType.SUNNY,
       WeatherType.CLOUDY,
       WeatherType.WINDY,
     ],
@@ -94,6 +93,7 @@ export const WEATHER_CONFIGS: Record<WeatherType, WeatherConfig> = {
       WeatherType.SUNNY,
       WeatherType.SUNNY,
       WeatherType.SUNNY,
+      WeatherType.CLOUDY,
       WeatherType.WINDY,
       WeatherType.RAINY,
     ],
@@ -117,8 +117,10 @@ export const WEATHER_CONFIGS: Record<WeatherType, WeatherConfig> = {
     maxDuration: 3,
     possibleTransitions: [
       WeatherType.SUNNY,
+      WeatherType.SUNNY,
       WeatherType.CLOUDY,
       WeatherType.WINDY,
+      WeatherType.SNOWING,
       WeatherType.SNOWING,
     ],
   },
