@@ -1,58 +1,60 @@
 'use client';
 
-import { Suspense, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
-function ResultsContent() {
+export default function ResultsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Get game data from URL params
-  const finalScore = parseInt(searchParams.get('score') || '0');
-  const uncoveredHay = parseInt(searchParams.get('uncovered') || '0');
-  const actionHistory = searchParams.get('history');
+  // Get game data from localStorage (client-side only)
+  const gameResults = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return { score: 0, uncovered: 0, history: [] };
+    }
+
+    try {
+      const data = localStorage.getItem('gameResults');
+      if (data) {
+        return JSON.parse(data);
+      }
+    } catch (e) {
+      console.error('Failed to parse game results', e);
+    }
+    return { score: 0, uncovered: 0, history: [] };
+  }, []);
+
+  const finalScore = gameResults.score || 0;
+  const uncoveredHay = gameResults.uncovered || 0;
 
   const stats = useMemo(() => {
-    if (!actionHistory) {
-      return {
-        hayMade: 0,
-        hayLost: 0,
-        coverActions: 0,
-        weatherChanges: 0,
-      };
-    }
+    const history = gameResults.history || [];
 
     let hayMade = 0;
     let hayLost = 0;
     let coverActions = 0;
     const weatherChanges: string[] = [];
 
-    try {
-      const actions = JSON.parse(decodeURIComponent(actionHistory));
-      actions.forEach((action: any) => {
-        switch (action.type) {
-          case 'make_hay':
-            hayMade += action.data?.amount || 0;
-            break;
-          case 'hay_loss':
-            hayLost += action.data?.amount || 0;
-            break;
-          case 'start_cover':
-            if (action.data?.action === 'cover') {
-              coverActions++;
-            }
-            break;
-          case 'weather_change':
-            if (action.data?.weather) {
-              weatherChanges.push(action.data.weather as string);
-            }
-            break;
-        }
-      });
-    } catch (e) {
-      console.error('Failed to parse action history', e);
-    }
+    history.forEach((action: any) => {
+      switch (action.type) {
+        case 'make_hay':
+          hayMade += action.data?.amount || 0;
+          break;
+        case 'hay_loss':
+          hayLost += action.data?.amount || 0;
+          break;
+        case 'start_cover':
+          if (action.data?.action === 'cover') {
+            coverActions++;
+          }
+          break;
+        case 'weather_change':
+          if (action.data?.weather) {
+            weatherChanges.push(action.data.weather as string);
+          }
+          break;
+      }
+    });
 
     return {
       hayMade: Math.floor(hayMade),
@@ -60,7 +62,7 @@ function ResultsContent() {
       coverActions,
       weatherChanges: weatherChanges.length,
     };
-  }, [actionHistory]);
+  }, [gameResults]);
 
   const handlePlayAgain = () => {
     router.push('/');
@@ -145,17 +147,5 @@ function ResultsContent() {
         </button>
       </motion.div>
     </div>
-  );
-}
-
-export default function ResultsPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-amber-50">
-        <div className="text-2xl font-bold text-amber-900 font-mono">Loading results...</div>
-      </div>
-    }>
-      <ResultsContent />
-    </Suspense>
   );
 }

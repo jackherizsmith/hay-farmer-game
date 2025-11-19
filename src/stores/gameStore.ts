@@ -91,13 +91,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       finalScore: state.coveredHay,
     });
 
-    // Navigate to results page with game data
-    const params = new URLSearchParams({
-      score: state.coveredHay.toString(),
-      uncovered: state.uncoveredHay.toString(),
-      history: encodeURIComponent(JSON.stringify(state.actionHistory)),
-    });
-    window.location.href = `/results?${params.toString()}`;
+    // Save game data to localStorage for results page
+    const gameResults = {
+      score: state.coveredHay,
+      uncovered: state.uncoveredHay,
+      history: state.actionHistory,
+    };
+    localStorage.setItem('gameResults', JSON.stringify(gameResults));
+
+    // Navigate to results page
+    window.location.href = '/results';
   },
 
   resetGame: () => {
