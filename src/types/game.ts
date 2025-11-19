@@ -34,6 +34,8 @@ export interface GameState {
   coverStartTime: number | null;
   coverDuration: number;
   hayBeingTransferred: number; // Amount of hay being covered/uncovered
+  startUncoveredHay: number; // Hay counts when action started
+  startCoveredHay: number;
 
   // Weather
   weather: WeatherState;

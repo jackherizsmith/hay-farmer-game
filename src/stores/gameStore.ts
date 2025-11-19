@@ -41,6 +41,8 @@ const initialState: GameState = {
   coverStartTime: null,
   coverDuration: 0,
   hayBeingTransferred: 0,
+  startUncoveredHay: 0,
+  startCoveredHay: 0,
   weather: {
     current: WeatherType.SUNNY,
     nextChangeAt: initialWeatherDuration,
@@ -121,18 +123,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if ((state.isCovering || state.isUncovering) && state.coverStartTime !== null) {
       const coverElapsed = (now - state.coverStartTime) / 1000;
       const progress = clamp((coverElapsed / state.coverDuration) * 100, 0, 100);
-
-      // Calculate how much hay should be transferred at this progress point
-      const totalToTransfer = state.hayBeingTransferred;
-      const shouldBeTransferred = (progress / 100) * totalToTransfer;
+      const progressRatio = progress / 100;
 
       if (state.isCovering) {
-        // Covering: move hay from uncovered to covered progressively
-        const currentlyCovered = state.coveredHay - (state.coveredHay - Math.floor(shouldBeTransferred));
-        const actualTransferred = Math.min(shouldBeTransferred, totalToTransfer);
-
-        updates.coveredHay = Math.floor((state.coveredHay - totalToTransfer) + actualTransferred);
-        updates.uncoveredHay = Math.max(0, (state.uncoveredHay + totalToTransfer) - actualTransferred);
+        // Covering: gradually move hay from uncovered to covered
+        const transferred = Math.floor(state.hayBeingTransferred * progressRatio);
+        updates.coveredHay = state.startCoveredHay + transferred;
+        updates.uncoveredHay = Math.max(0, state.startUncoveredHay - transferred);
 
         if (progress >= 100) {
           // Covering complete
@@ -140,21 +137,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
           updates.coverProgress = 0;
           updates.coverStartTime = null;
           updates.hayBeingTransferred = 0;
+          updates.coveredHay = state.startCoveredHay + state.hayBeingTransferred;
+          updates.uncoveredHay = Math.max(0, state.startUncoveredHay - state.hayBeingTransferred);
 
           get().addAction({
             type: 'complete_cover',
             timestamp: now,
-            data: { amount: totalToTransfer },
+            data: { amount: state.hayBeingTransferred },
           });
         } else {
           updates.coverProgress = progress;
         }
       } else if (state.isUncovering) {
-        // Uncovering: move hay from covered to uncovered progressively
-        const actualTransferred = Math.min(shouldBeTransferred, totalToTransfer);
-
-        updates.uncoveredHay = Math.floor((state.uncoveredHay - totalToTransfer) + actualTransferred);
-        updates.coveredHay = Math.max(0, (state.coveredHay + totalToTransfer) - actualTransferred);
+        // Uncovering: gradually move hay from covered to uncovered
+        const transferred = Math.floor(state.hayBeingTransferred * progressRatio);
+        updates.uncoveredHay = state.startUncoveredHay + transferred;
+        updates.coveredHay = Math.max(0, state.startCoveredHay - transferred);
 
         if (progress >= 100) {
           // Uncovering complete
@@ -162,11 +160,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
           updates.coverProgress = 0;
           updates.coverStartTime = null;
           updates.hayBeingTransferred = 0;
+          updates.uncoveredHay = state.startUncoveredHay + state.hayBeingTransferred;
+          updates.coveredHay = Math.max(0, state.startCoveredHay - state.hayBeingTransferred);
 
           get().addAction({
             type: 'complete_cover',
             timestamp: now,
-            data: { amount: totalToTransfer },
+            data: { amount: state.hayBeingTransferred },
           });
         } else {
           updates.coverProgress = progress;
@@ -235,7 +235,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // If currently covering, switch to uncovering (if there's covered hay)
     if (state.isCovering && state.coveredHay > 0) {
-      const duration = calculateCoverDuration(state.coveredHay);
+      const amountToUncover = state.coveredHay;
+      const duration = calculateCoverDuration(amountToUncover);
 
       set({
         isCovering: false,
@@ -243,20 +244,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         coverProgress: 0,
         coverStartTime: now,
         coverDuration: duration,
-        hayBeingTransferred: state.coveredHay,
+        hayBeingTransferred: amountToUncover,
+        startUncoveredHay: state.uncoveredHay,
+        startCoveredHay: state.coveredHay,
       });
 
       get().addAction({
         type: 'start_cover',
         timestamp: now,
-        data: { amount: state.coveredHay, duration, action: 'uncover' },
+        data: { amount: amountToUncover, duration, action: 'uncover' },
       });
       return;
     }
 
     // If currently uncovering, switch to covering (if there's uncovered hay)
     if (state.isUncovering && state.uncoveredHay > 0) {
-      const duration = calculateCoverDuration(state.uncoveredHay);
+      const amountToCover = state.uncoveredHay;
+      const duration = calculateCoverDuration(amountToCover);
 
       set({
         isCovering: true,
@@ -264,13 +268,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         coverProgress: 0,
         coverStartTime: now,
         coverDuration: duration,
-        hayBeingTransferred: state.uncoveredHay,
+        hayBeingTransferred: amountToCover,
+        startUncoveredHay: state.uncoveredHay,
+        startCoveredHay: state.coveredHay,
       });
 
       get().addAction({
         type: 'start_cover',
         timestamp: now,
-        data: { amount: state.uncoveredHay, duration, action: 'cover' },
+        data: { amount: amountToCover, duration, action: 'cover' },
       });
       return;
     }
@@ -280,7 +286,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // If we have uncovered hay, cover it
     if (state.uncoveredHay > 0) {
-      const duration = calculateCoverDuration(state.uncoveredHay);
+      const amountToCover = state.uncoveredHay;
+      const duration = calculateCoverDuration(amountToCover);
 
       set({
         isCovering: true,
@@ -288,18 +295,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
         coverProgress: 0,
         coverStartTime: now,
         coverDuration: duration,
-        hayBeingTransferred: state.uncoveredHay,
+        hayBeingTransferred: amountToCover,
+        startUncoveredHay: state.uncoveredHay,
+        startCoveredHay: state.coveredHay,
       });
 
       get().addAction({
         type: 'start_cover',
         timestamp: now,
-        data: { amount: state.uncoveredHay, duration, action: 'cover' },
+        data: { amount: amountToCover, duration, action: 'cover' },
       });
     }
     // If we have covered hay, uncover it
     else if (state.coveredHay > 0) {
-      const duration = calculateCoverDuration(state.coveredHay);
+      const amountToUncover = state.coveredHay;
+      const duration = calculateCoverDuration(amountToUncover);
 
       set({
         isCovering: false,
@@ -307,13 +317,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         coverProgress: 0,
         coverStartTime: now,
         coverDuration: duration,
-        hayBeingTransferred: state.coveredHay,
+        hayBeingTransferred: amountToUncover,
+        startUncoveredHay: state.uncoveredHay,
+        startCoveredHay: state.coveredHay,
       });
 
       get().addAction({
         type: 'start_cover',
         timestamp: now,
-        data: { amount: state.coveredHay, duration, action: 'uncover' },
+        data: { amount: amountToUncover, duration, action: 'uncover' },
       });
     }
   },
