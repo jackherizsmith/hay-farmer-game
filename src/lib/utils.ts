@@ -1,18 +1,19 @@
 import { WeatherType, WEATHER_CONFIGS, GAME_CONSTANTS } from '@/types/game';
+import { SeededRandom } from './seededRandom';
 
 export function calculateCoverDuration(hayCount: number): number {
   return GAME_CONSTANTS.BASE_COVER_TIME + hayCount * GAME_CONSTANTS.COVER_SCALING_FACTOR;
 }
 
-export function getRandomWeatherDuration(weather: WeatherType): number {
+export function getRandomWeatherDuration(weather: WeatherType, rng: SeededRandom): number {
   const config = WEATHER_CONFIGS[weather];
-  return Math.random() * (config.maxDuration - config.minDuration) + config.minDuration;
+  return rng.nextFloat(config.minDuration, config.maxDuration);
 }
 
-export function getNextWeather(currentWeather: WeatherType): WeatherType {
+export function getNextWeather(currentWeather: WeatherType, rng: SeededRandom): WeatherType {
   const config = WEATHER_CONFIGS[currentWeather];
   const possibleWeathers = config.possibleTransitions;
-  return possibleWeathers[Math.floor(Math.random() * possibleWeathers.length)];
+  return rng.pick(possibleWeathers);
 }
 
 export function calculateGameTime(elapsedSeconds: number): { hour: number; minute: number; period: 'AM' | 'PM' } {

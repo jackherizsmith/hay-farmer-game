@@ -1,8 +1,13 @@
 import { create } from 'zustand';
 import { GameState, WeatherType, GameAction, WEATHER_CONFIGS, GAME_CONSTANTS } from '@/types/game';
 import { calculateCoverDuration, getRandomWeatherDuration, getNextWeather, clamp } from '@/lib/utils';
+import { SeededRandom, getDailySeed } from '@/lib/seededRandom';
 
 interface GameStore extends GameState {
+  // Random number generator for deterministic weather
+  rng: SeededRandom | null;
+  dailySeed: number;
+
   // Actions
   startGame: () => void;
   pauseGame: () => void;
@@ -26,8 +31,6 @@ interface GameStore extends GameState {
   addAction: (action: GameAction) => void;
 }
 
-const initialWeatherDuration = getRandomWeatherDuration(WeatherType.SUNNY);
-
 const initialState: GameState = {
   isPlaying: false,
   isPaused: false,
@@ -49,8 +52,8 @@ const initialState: GameState = {
   startCoveredHay: 0,
   weather: {
     current: WeatherType.SUNNY,
-    nextChangeAt: initialWeatherDuration,
-    duration: initialWeatherDuration,
+    nextChangeAt: 4, // Will be set properly on startGame
+    duration: 4,
   },
   finalScore: 0,
 };
@@ -58,14 +61,20 @@ const initialState: GameState = {
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
   actionHistory: [],
+  rng: null,
+  dailySeed: 0,
 
   startGame: () => {
     const now = Date.now();
-    const weatherDuration = getRandomWeatherDuration(WeatherType.SUNNY);
+    const seed = getDailySeed();
+    const rng = new SeededRandom(seed);
+    const weatherDuration = getRandomWeatherDuration(WeatherType.SUNNY, rng);
     set({
       ...initialState,
       isPlaying: true,
       startTime: now,
+      rng,
+      dailySeed: seed,
       weather: {
         current: WeatherType.SUNNY,
         nextChangeAt: weatherDuration,
@@ -104,9 +113,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   resetGame: () => {
-    const weatherDuration = getRandomWeatherDuration(WeatherType.SUNNY);
+    const seed = getDailySeed();
+    const rng = new SeededRandom(seed);
+    const weatherDuration = getRandomWeatherDuration(WeatherType.SUNNY, rng);
     set({
       ...initialState,
+      rng,
+      dailySeed: seed,
       weather: {
         current: WeatherType.SUNNY,
         nextChangeAt: weatherDuration,
@@ -209,9 +222,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     // Handle weather changes
-    if (newElapsedTime >= state.weather.nextChangeAt) {
-      const newWeather = getNextWeather(state.weather.current);
-      const newDuration = getRandomWeatherDuration(newWeather);
+    if (newElapsedTime >= state.weather.nextChangeAt && state.rng) {
+      const newWeather = getNextWeather(state.weather.current, state.rng);
+      const newDuration = getRandomWeatherDuration(newWeather, state.rng);
 
       updates.weather = {
         current: newWeather,
@@ -297,8 +310,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   updateWeather: () => {
     const state = get();
-    const newWeather = getNextWeather(state.weather.current);
-    const newDuration = getRandomWeatherDuration(newWeather);
+    if (!state.rng) return;
+
+    const newWeather = getNextWeather(state.weather.current, state.rng);
+    const newDuration = getRandomWeatherDuration(newWeather, state.rng);
 
     set({
       weather: {
